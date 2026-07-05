@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الهاتف الافتراضي</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            user-select: none;
+        }
+
+        /* هيكل التلفون */
+        .phone {
+            width: 360px;
+            height: 740px;
+            background-color: #000;
+            border: 12px solid #2c2c2c;
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .camera {
+            width: 60px;
+            height: 15px;
+            background-color: #2c2c2c;
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            z-index: 10;
+        }
+
+        /* الشاشة */
+        .screen {
+            flex: 1;
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
+            position: relative;
+            padding: 20px;
+            padding-top: 35px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* شاشة القفل المحمية */
+        .lock-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lock-screen h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #99f2c8;
+        }
+
+        .lock-screen input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #333;
+            text-align: center;
+            font-size: 18px;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            width: 65%;
+            background: #222;
+            color: white;
+            outline: none;
+        }
+
+        .lock-screen input:focus {
+            border-color: #99f2c8;
+        }
+
+        .lock-screen button {
+            background-color: #1f4037;
+            color: #99f2c8;
+            border: 1px solid #99f2c8;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* الواجهة الرئيسية وشبكة التطبيقات */
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .app-icon {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .app-icon .icon-shape {
+            width: 55px;
+            height: 55px;
+            background-color: rgba(255,255,255,0.15);
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 26px;
+            margin: 0 auto 5px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .app-icon span {
+            font-size: 11px;
+            display: block;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* النوافذ المفتوحة للتطبيقات */
+        .app-window {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #1a1a1a;
+            z-index: 4;
+            display: none;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background-color: #222;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            border-bottom: 1px solid #333;
+        }
+
+        .close-btn {
+            background: #ff4d4d;
+            border: none;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        iframe {
+            width: 100%;
+            flex: 1;
+            border: none;
+            background: white;
+        }
+
+        /* ستايل المتجر الخاص */
+        .store-container {
+            padding: 15px;
+            background: #1a1a1a;
+            height: 100%;
+            overflow-y: auto;
+            color: white;
+        }
+
+        .store-item {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .store-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .store-btn {
+            background: #00c853;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="camera"></div>
+        
+        <!-- شاشة القفل المحمية برمزك السري -->
+        <div class="lock-screen" id="lockScreen">
+            <h2>🔒 الهاتف مغلق</h2>
+            <input type="password" id="pinInput" placeholder="أدخل رمز PIN">
+            <button onclick="unlockPhone()">فتح</button>
+        </div>
+
+        <!-- الشاشة الرئيسية للهاتف الوهمي -->
+        <div class="screen">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h1 style="font-size: 26px; margin: 0; color: white; text-shadow: 0 2px 5px rgba(0,0,0,0.5);">12:30 م</h1>
+                <p style="font-size: 11px; margin: 3px 0; color: #dfdfdf;">الهاتف الافتراضي الآمن</p>
+            </div>
+
+            <!-- شبكة التطبيقات الافتراضية المتاحة عند التشغيل لأول مرة -->
+            <div class="apps-grid" id="homeApps">
+                <div class="app-icon" onclick="openApp('متجر التطبيقات', 'STORE')">
+                    <div class="icon-shape" style="background: #00e676;">🛍️</div>
+                    <span>المتجر</span>
+                </div>
+                <div class="app-icon" onclick="openApp('جوجل كروم', 'https://www.google.com/search?igu=1')">
+                    <div class="icon-shape" style="background: #1e88e5;">🌐</div>
+                    <span>المتصفح</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- نافذة عرض التطبيقات والالعاب والمجر -->
+        <div class="app-window" id="appWindow">
+            <div class="app-header">
+                <span id="appName">التطبيق</span>
+                <button class="close-btn" onclick="closeApp()">✕ إغلاق</button>
+            </div>
+            
+            <!-- لو تم فتح المتجر يعرض هذا الجزء -->
+            <div id="storeContent" class="store-container" style="display:none;">
+                <h3 style="color:#00c853; margin-top:0;">تطبيقات وألعاب متاحة للتنزيل:</h3>
+                
+                <div class="store-item">
+                    <div class="store-item-info"><span>📖</span> <div><b>القرآن الكريم</b><br><small>تلاوات واستماع</small></div></div>
+                    <button class="store-btn" id="btn-quran" onclick="installApp('القرآن الكريم', '📖', 'https://quran.com/ar')">تثبيت</button>
+                </div>
+
+                <div class="store-item">
+                    <div class="store-item-info"><span>🎮</span> <div><b>لعبة ذكاء وحركة</b><br><small>ألعاب مسلية</small></div></div>
+                    <button class="store-btn" id="btn-game" onclick="installApp('لعبة ذكاء', '🎮', 'https://html5.gamedistribution.com/4a06d863f607412ca68d66df2bf61a0b/')">تثبيت</button>
+                </div>
+
+                <div class="store-item">
+                    <div class="store-item-info"><span>👥</span> <div><b>فيسبوك لايت</b><br><small>تصفح خفيف</small></div></div>
+                    <button class="store-btn" id="btn-fb" onclick="installApp('فيسبوك', '👥', 'https://m.facebook.com')">تثبيت</button>
+                </div>
+            </div>
+
+            <!-- لو تم فتح تطبيق عادي يعرض الـ Iframe -->
+            <iframe id="appFrame" src="" style="display:block;"></iframe>
+        </div>
+
+    </div>
+
+    <script>
+        // التحقق من الرمز السري الجديد الخاص بك
+        function unlockPhone() {
+            var pin = document.getElementById("pinInput").value;
+            if(pin === "382247") {
+                document.getElementById("lockScreen").style.display = "none";
+            } else {
+                alert("الرمز السري غير صحيح!");
+                document.getElementById("pinInput").value = "";
+            }
+        }
+
+        // فتح التطبيق أو المتجر
+        function openApp(name, url) {
+            document.getElementById("appName").innerText = name;
+            
+            if(url === 'STORE') {
+                document.getElementById("appFrame").style.display = "none";
+                document.getElementById("storeContent").style.display = "block";
+            } else {
+                document.getElementById("storeContent").style.display = "none";
+                document.getElementById("appFrame").style.display = "block";
+                document.getElementById("appFrame").src = url;
+            }
+            document.getElementById("appWindow").style.display = "flex";
+        }
+
+        // إغلاق التطبيق
+        function closeApp() {
+            document.getElementById("appWindow").style.display = "none";
+            document.getElementById("appFrame").src = "";
+        }
+
+        // ميزة تنزيل وتثبيت التطبيقات على الشاشة الرئيسية
+        function installApp(name, icon, url) {
+            var grid = document.getElementById("homeApps");
+            
+            var newApp = document.createElement("div");
+            newApp.className = "app-icon";
+            newApp.onclick = function() { openApp(name, url); };
+            newApp.innerHTML = '<div class="icon-shape">' + icon + '</div><span>' + name + '</span>';
+            
+            grid.appendChild(newApp);
+            alert("تم تنزيل وتثبيت " + name + " بنجاح على شاشتك الرئيسية!");
+        }
+    </script>
+
+</body>
+</html>
